@@ -1,0 +1,15 @@
+PASS: scene boots with drone and HUD
+PASS: touch center produces zero
+PASS: two pointers operate independently
+PASS: other pointer cannot release held stick
+PASS: releasing one stick preserves the other
+PASS: UDP loopback pairs
+PASS: remote takeoff climbs
+PASS: telemetry roundtrip
+PASS: remote pitch moves aircraft forward
+PASS: neutral input brakes and holds
+PASS: remote yaw rotates aircraft
+PASS: lost heartbeat revokes control
+PASS: link loss neutralizes simulated vehicle
+PASS: automatic landing finishes
+PASS: reset restores home

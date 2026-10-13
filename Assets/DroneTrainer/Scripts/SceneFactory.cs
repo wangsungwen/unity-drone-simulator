@@ -1,0 +1,95 @@
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace DroneTrainer
+{
+    public static class SceneFactory
+    {
+        static readonly Dictionary<Color, Material> materials = new Dictionary<Color, Material>();
+        public static Material MakeMaterial(Color color, bool unlit = false)
+        {
+            if (!unlit && materials.TryGetValue(color, out var cached) && cached != null) return cached;
+            var mat = new Material(Shader.Find(unlit ? "Unlit/Color" : "Standard"));
+            mat.color = color;
+            if (!unlit) { mat.SetFloat("_Glossiness", .15f); materials[color] = mat; }
+            return mat;
+        }
+        public static GameObject Shape(string name, PrimitiveType type, Vector3 position, Vector3 scale, Color color, bool solid = true)
+        {
+            var obj = GameObject.CreatePrimitive(type); obj.name = name;
+            obj.transform.position = position; obj.transform.localScale = scale;
+            obj.GetComponent<Renderer>().sharedMaterial = MakeMaterial(color);
+            if (!solid) { var collider = obj.GetComponent<Collider>(); collider.enabled = false; Object.Destroy(collider); }
+            return obj;
+        }
+        static void Line(string name, Vector3 a, Vector3 b, float width, Color color)
+        {
+            var obj = new GameObject(name); var line = obj.AddComponent<LineRenderer>();
+            line.material = MakeMaterial(color, true); line.widthMultiplier = width;
+            line.positionCount = 2; line.SetPosition(0, a); line.SetPosition(1, b);
+        }
+        public static DroneMotor BuildField()
+        {
+            RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
+            RenderSettings.ambientLight = new Color(.64f, .71f, .8f);
+            RenderSettings.fog = true; RenderSettings.fogColor = new Color(.64f, .78f, .86f);
+            RenderSettings.fogMode = FogMode.Linear; RenderSettings.fogStartDistance = 65; RenderSettings.fogEndDistance = 160;
+            var sun = new GameObject("Afternoon sun").AddComponent<Light>();
+            sun.type = LightType.Directional; sun.intensity = 1.1f;
+            sun.shadows = LightShadows.Soft; sun.transform.rotation = Quaternion.Euler(48, -35, 0);
+            Shape("Ground", PrimitiveType.Cube, new Vector3(0, -.2f, 0), new Vector3(180, .4f, 180), new Color(.28f, .42f, .29f));
+            Shape("Training apron", PrimitiveType.Cube, new Vector3(0, -.008f, 4), new Vector3(42, .01f, 40), new Color(.34f, .4f, .4f), false);
+            Color grid = new Color(.48f, .57f, .55f);
+            for (int i = -20; i <= 20; i += 5)
+            {
+                Line("5m grid", new Vector3(i, .012f, -16), new Vector3(i, .012f, 24), .025f, grid);
+                Line("5m grid", new Vector3(-20, .012f, i + 4), new Vector3(20, .012f, i + 4), .025f, grid);
+            }
+            Pad(Vector3.zero, new Color(.96f, .7f, .22f)); Pad(new Vector3(8, 0, 8), new Color(.22f, .83f, .82f));
+            for (int i = 0; i < 4; i++)
+            {
+                float x = i % 2 == 0 ? -20 : 20, z = i < 2 ? -16 : 24;
+                Shape("Boundary post", PrimitiveType.Cylinder, new Vector3(x, .6f, z), new Vector3(.18f, .6f, .18f), new Color(1, .55f, .16f));
+            }
+            for (int i = 0; i < 18; i++)
+            {
+                float angle = i * Mathf.PI * 2 / 18;
+                Vector3 pos = new Vector3(Mathf.Sin(angle) * 52, 0, Mathf.Cos(angle) * 52);
+                Shape("Tree trunk", PrimitiveType.Cylinder, pos + Vector3.up * 1.4f, new Vector3(.6f, 1.4f, .6f), new Color(.3f, .25f, .19f));
+                Shape("Tree canopy", PrimitiveType.Sphere, pos + Vector3.up * 4, new Vector3(4, 5, 4), new Color(.18f, .34f, .25f), false);
+            }
+            Shape("Hangar", PrimitiveType.Cube, new Vector3(-34, 3, 24), new Vector3(14, 6, 12), new Color(.53f, .59f, .59f));
+            Shape("Hangar door", PrimitiveType.Cube, new Vector3(-34, 2.2f, 17.95f), new Vector3(9, 4.4f, .1f), new Color(.18f, .25f, .28f), false);
+            Shape("Windsock pole", PrimitiveType.Cylinder, new Vector3(23, 3, 12), new Vector3(.1f, 3, .1f), Color.white);
+            var sock = Shape("Wind marker", PrimitiveType.Cube, new Vector3(24, 5.6f, 12), new Vector3(2, .35f, .35f), new Color(1, .45f, .1f), false);
+            sock.transform.rotation = Quaternion.Euler(0, 0, -12);
+
+            var root = new GameObject("Training quadcopter");
+            var collider = root.AddComponent<BoxCollider>(); collider.size = new Vector3(.85f, .6f, .85f);
+            var visual = new GameObject("Airframe").transform; visual.SetParent(root.transform, false);
+            Attach(Shape("Body", PrimitiveType.Cube, Vector3.zero, new Vector3(.48f, .17f, .64f), new Color(.85f, .9f, .92f), false), visual);
+            var nose = Shape("Front indicator", PrimitiveType.Cube, new Vector3(0, .03f, .34f), new Vector3(.26f, .08f, .1f), new Color(1, .4f, .14f), false); Attach(nose, visual);
+            var props = new List<Transform>();
+            for (int i = 0; i < 4; i++)
+            {
+                float x = i % 2 == 0 ? -.5f : .5f, z = i < 2 ? -.5f : .5f;
+                var arm = Shape("Arm", PrimitiveType.Cube, new Vector3(x * .5f, 0, z * .5f), new Vector3(.65f, .09f, .1f), new Color(.17f, .23f, .27f), false);
+                arm.transform.rotation = Quaternion.Euler(0, x * z > 0 ? -45 : 45, 0); Attach(arm, visual);
+                Attach(Shape("Motor", PrimitiveType.Cylinder, new Vector3(x, .07f, z), new Vector3(.14f, .07f, .14f), new Color(.14f, .2f, .24f), false), visual);
+                var prop = Shape("Rotor", PrimitiveType.Cube, new Vector3(x, .16f, z), new Vector3(.7f, .015f, .07f), new Color(.1f, .17f, .19f), false);
+                Attach(prop, visual); props.Add(prop.transform);
+                Attach(Shape("Landing leg", PrimitiveType.Cube, new Vector3(x * .6f, -.19f, z * .6f), new Vector3(.05f, .22f, .05f), new Color(.15f, .2f, .24f), false), visual);
+            }
+            var drone = root.AddComponent<DroneMotor>(); drone.visual = visual; drone.propellers = props.ToArray();
+            return drone;
+        }
+        static void Attach(GameObject obj, Transform parent) { obj.transform.SetParent(parent, false); }
+        static void Pad(Vector3 center, Color color)
+        {
+            Shape("Landing pad", PrimitiveType.Cylinder, center + Vector3.up * .012f, new Vector3(3, .01f, 3), new Color(.14f, .2f, .24f), false);
+            Line("H left", center + new Vector3(-.6f, .03f, -.7f), center + new Vector3(-.6f, .03f, .7f), .13f, color);
+            Line("H right", center + new Vector3(.6f, .03f, -.7f), center + new Vector3(.6f, .03f, .7f), .13f, color);
+            Line("H middle", center + new Vector3(-.6f, .03f, 0), center + new Vector3(.6f, .03f, 0), .13f, color);
+        }
+    }
+}
