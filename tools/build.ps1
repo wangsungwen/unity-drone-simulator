@@ -1,11 +1,11 @@
 param(
     [Parameter(Mandatory=$true)][string]$Unity,
-    [ValidateSet('Windows','Android','IOS')][string]$Target = 'Windows'
+    [ValidateSet('Windows','Android','AndroidRemote','IOS','IOSRemote')][string]$Target = 'Windows'
 )
 $ErrorActionPreference = 'Stop'
 $project = Split-Path -Parent $PSScriptRoot
 if (-not (Test-Path -LiteralPath $Unity)) { throw "Unity executable does not exist: $Unity" }
-$buildTarget = @{ Windows='Win64'; Android='Android'; IOS='iOS' }[$Target]
+$buildTarget = @{ Windows='Win64'; Android='Android'; IOS='iOS'; AndroidRemote='Android'; IOSRemote='iOS' }[$Target]
 New-Item -ItemType Directory -Force -Path (Join-Path $project 'Builds') | Out-Null
 $log = Join-Path $project "Builds/build-$Target.log"
 $arguments = @('-batchmode','-nographics','-quit','-projectPath',('"' + $project + '"'),

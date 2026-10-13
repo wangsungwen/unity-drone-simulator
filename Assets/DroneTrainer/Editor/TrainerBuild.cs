@@ -26,9 +26,9 @@ namespace DroneTrainer.Editor
         {
             PlayerSettings.companyName = "Independent Drone Lab";
             PlayerSettings.productName = "Drone Training Lab";
-            PlayerSettings.bundleVersion = "0.2.0";
-            PlayerSettings.Android.bundleVersionCode = 2;
-            PlayerSettings.iOS.buildNumber = "2";
+            PlayerSettings.bundleVersion = "0.2.1";
+            PlayerSettings.Android.bundleVersionCode = 3;
+            PlayerSettings.iOS.buildNumber = "3";
             PlayerSettings.SetApplicationIdentifier(BuildTargetGroup.Android, "tw.traininglab.dronesimulator");
             PlayerSettings.SetApplicationIdentifier(BuildTargetGroup.iOS, "tw.traininglab.dronesimulator");
             PlayerSettings.defaultInterfaceOrientation = UIOrientation.LandscapeLeft;
@@ -74,7 +74,10 @@ namespace DroneTrainer.Editor
         [MenuItem("Drone Trainer/Build/Windows")]
         public static void Windows() { Build(BuildTarget.StandaloneWindows64, "Builds/Windows/DroneTrainingLab.exe"); }
         [MenuItem("Drone Trainer/Build/Android APK")]
-        public static void Android()
+        public static void Android() { AndroidVariant(false); }
+        [MenuItem("Drone Trainer/Build/Android Remote Controller APK")]
+        public static void AndroidRemote() { AndroidVariant(true); }
+        static void AndroidVariant(bool remote)
         {
 #if UNITY_ANDROID
             string sdk = System.Environment.GetEnvironmentVariable("DRONE_ANDROID_SDK");
@@ -84,19 +87,40 @@ namespace DroneTrainer.Editor
             if (!string.IsNullOrEmpty(ndk)) UnityEditor.Android.AndroidExternalToolsSettings.ndkRootPath = ndk;
             if (!string.IsNullOrEmpty(jdk)) UnityEditor.Android.AndroidExternalToolsSettings.jdkRootPath = jdk;
 #endif
-            EditorUserBuildSettings.buildAppBundle = false; Build(BuildTarget.Android, "Builds/Android/DroneTrainingLab.apk");
+            EditorUserBuildSettings.buildAppBundle = false; Build(BuildTarget.Android, remote ? "Builds/AndroidRemote/DroneRemoteController.apk" : "Builds/Android/DroneTrainingLab.apk", remote);
         }
         [MenuItem("Drone Trainer/Build/iOS Xcode project")]
         public static void IOS() { Build(BuildTarget.iOS, "Builds/iOS"); }
-        static void Build(BuildTarget target, string output)
+        [MenuItem("Drone Trainer/Build/iOS Remote Controller Xcode project")]
+        public static void IOSRemote() { Build(BuildTarget.iOS, "Builds/iOSRemote", true); }
+        static void Build(BuildTarget target, string output, bool remote = false)
         {
             Configure(); Directory.CreateDirectory(Path.GetDirectoryName(output));
-            var result = BuildPipeline.BuildPlayer(new BuildPlayerOptions {
-                scenes = new[] { ScenePath }, locationPathName = output, target = target, options = BuildOptions.None
-            });
-            if (result.summary.result != BuildResult.Succeeded)
-                throw new BuildFailedException("Build failed: " + result.summary.result);
-            Debug.Log("Built " + output);
+            const string launchPath = "Assets/DroneTrainer/Resources/TrainerLaunch.txt";
+            byte[] prior = File.Exists(launchPath) ? File.ReadAllBytes(launchPath) : null;
+            try
+            {
+                File.WriteAllText(launchPath, remote ? "remote" : "local");
+                AssetDatabase.ImportAsset(launchPath, ImportAssetOptions.ForceSynchronousImport);
+                if (target == BuildTarget.Android || target == BuildTarget.iOS)
+                {
+                    var group = target == BuildTarget.Android ? BuildTargetGroup.Android : BuildTargetGroup.iOS;
+                    PlayerSettings.productName = remote ? "無人機電腦遙控器" : "無人機飛行模擬器";
+                    PlayerSettings.SetApplicationIdentifier(group, "tw.traininglab.dronesimulator" + (remote ? ".remote" : ""));
+                }
+                var result = BuildPipeline.BuildPlayer(new BuildPlayerOptions {
+                    scenes = new[] { ScenePath }, locationPathName = output, target = target, options = BuildOptions.None
+                });
+                if (result.summary.result != BuildResult.Succeeded)
+                    throw new BuildFailedException("Build failed: " + result.summary.result);
+                Debug.Log("Built " + output);
+            }
+            finally
+            {
+                if (prior == null) AssetDatabase.DeleteAsset(launchPath);
+                else { File.WriteAllBytes(launchPath, prior); AssetDatabase.ImportAsset(launchPath); }
+                Configure();
+            }
         }
 #if UNITY_IOS
         [PostProcessBuild(100)]

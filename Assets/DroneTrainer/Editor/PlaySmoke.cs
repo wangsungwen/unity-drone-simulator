@@ -51,6 +51,7 @@ namespace DroneTrainer.Editor
                 {
                     app = UnityEngine.Object.FindObjectOfType<TrainerApp>();
                     Check(app != null && app.Hud != null && app.Drone != null, "scene boots with drone and HUD");
+                    Check(app.Link.Role == RunRole.Local && app.CameraRig.GetComponent<Camera>().enabled && app.Hud.Left.gameObject.activeSelf, "local mode renders local flight with sticks without pairing");
                     TestTouchSticks();
                     app.SetRole(RunRole.Host); app.Link.Listen();
                     client = new GameObject("Smoke remote").AddComponent<RemoteLink>();
@@ -101,11 +102,13 @@ namespace DroneTrainer.Editor
                 }
                 else if (phase == 9 && elapsed > .5)
                 {
+                    Check(app.Link.Role == RunRole.Remote && !app.CameraRig.GetComponent<Camera>().enabled && app.Hud.Left.gameObject.activeSelf, "remote mode presents sticks and disables local scene rendering");
                     Capture("TestResults/phone-remote.png");
                     app.SetRole(RunRole.Host); app.Link.Listen(); Next();
                 }
                 else if (phase == 10 && elapsed > .5)
                 {
+                    Check(app.CameraRig.GetComponent<Camera>().enabled && !app.Hud.Left.gameObject.activeSelf, "host mode renders flight without local sticks");
                     Capture("TestResults/desktop-host.png");
                     ExamCourseChecks.Run(app, Check);
                     app.Hud.OpenPracticeMenu(); Next();
@@ -118,6 +121,15 @@ namespace DroneTrainer.Editor
                 else if (phase == 12 && elapsed > .5)
                 {
                     Capture("TestResults/exam-eight.png");
+                    CheckOverview();
+                    Capture("TestResults/phone-local-wide.png",1950,900);
+                    Capture("TestResults/tablet-local.png",1200,900);
+                    app.CameraRig.SetMode(1); app.Command("takeoff"); Next();
+                }
+                else if (phase == 13 && elapsed > 4)
+                {
+                    Check(Mathf.Abs(app.CameraRig.transform.position.y-1.7f)<.01f && Mathf.Abs(app.CameraRig.transform.position.y-app.Drone.transform.position.y)<.3f,"eye-level camera is approximately level with normal hover");
+                    Capture("TestResults/operator-eye.png");
                     Finish(true, null);
                 }
             }
@@ -125,12 +137,12 @@ namespace DroneTrainer.Editor
         }
         static void OnLog(string condition, string trace, LogType type)
         { if (type == LogType.Error || type == LogType.Exception || type == LogType.Assert) runtimeError = condition + "\n" + trace; }
-        static void Capture(string path)
+        static void Capture(string path, int width=1600, int height=900)
         {
             // Explicit render works in batch-mode, where Game View never presents a frame.
             var camera = app.CameraRig.GetComponent<Camera>();
             var canvas = UnityEngine.Object.FindObjectOfType<Canvas>();
-            var target = new RenderTexture(1600, 900, 24);
+            var target = new RenderTexture(width, height, 24);
             var previous = RenderTexture.active;
             var priorTarget = camera.targetTexture;
             bool priorEnabled = camera.enabled;
@@ -138,7 +150,8 @@ namespace DroneTrainer.Editor
             var priorScale = canvas.scaleFactor;
             camera.enabled = true; camera.targetTexture = target;
             canvas.renderMode = RenderMode.ScreenSpaceCamera; canvas.worldCamera = camera;
-            canvas.planeDistance = 1; canvas.scaleFactor = 1;
+            canvas.planeDistance = 1; canvas.scaleFactor = Mathf.Min(width/1600f,height/900f);
+            camera.SendMessage("LateUpdate");
             // Dynamic CJK glyphs can rebuild the font atlas during the first canvas pass.
             for (int pass = 0; pass < 3; pass++)
             {
@@ -147,8 +160,8 @@ namespace DroneTrainer.Editor
                 Canvas.ForceUpdateCanvases(); camera.Render();
             }
             RenderTexture.active = target;
-            var texture = new Texture2D(1600, 900, TextureFormat.RGB24, false);
-            texture.ReadPixels(new Rect(0, 0, 1600, 900), 0, 0); texture.Apply();
+            var texture = new Texture2D(width, height, TextureFormat.RGB24, false);
+            texture.ReadPixels(new Rect(0, 0, width, height), 0, 0); texture.Apply();
             File.WriteAllBytes(path, texture.EncodeToPNG());
             var layout = new List<string>();
             foreach (var label in canvas.GetComponentsInChildren<UnityEngine.UI.Text>())
@@ -157,6 +170,25 @@ namespace DroneTrainer.Editor
             RenderTexture.active = previous; camera.targetTexture = priorTarget; camera.enabled = priorEnabled;
             canvas.renderMode = priorMode; canvas.scaleFactor = priorScale;
             UnityEngine.Object.DestroyImmediate(texture); UnityEngine.Object.DestroyImmediate(target);
+        }
+        static void CheckOverview()
+        {
+            foreach(var profile in new[] { ExamProfile.Under2kg, ExamProfile.BasicI, ExamProfile.BasicIII })
+            {
+                app.SelectProfile(profile); app.SelectPractice(profile == ExamProfile.Under2kg ? PracticeKind.Square : PracticeKind.Circuit);
+                app.CameraRig.SetMode(0); app.CameraRig.SendMessage("LateUpdate");
+                Bounds bounds=app.CameraRig.CourseBounds;
+                var camera=app.CameraRig.GetComponent<Camera>(); bool inside=true;
+                for(int i=0;i<8;i++)
+                {
+                    Vector3 corner=bounds.center+Vector3.Scale(bounds.extents,new Vector3((i&1)==0?-1:1,(i&2)==0?-1:1,(i&4)==0?-1:1));
+                    Vector3 view=camera.WorldToViewportPoint(corner);
+                    inside &= view.z>0 && view.x>.05f && view.x<.95f && view.y>.26f && view.y<.74f;
+                }
+                Check(inside,"overview fits entire course in unobstructed center band: "+profile);
+            }
+            app.SelectProfile(ExamProfile.BasicI); app.SelectPractice(PracticeKind.FigureEight);
+            app.CameraRig.SendMessage("LateUpdate");
         }
         static PointerEventData Pointer(TouchStick stick, int id, Vector2 direction)
         {

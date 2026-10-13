@@ -1,3 +1,5 @@
+> v0.2.1 更新：數據移至頂端、提示移至下緣；新增預設全景俯視與眼高操作員視角；手機提供獨立「飛行模擬器」及「電腦遙控器」App。兩個 App 可同時安裝，詳細對照見 [README](README.md)。
+
 # 無人機飛行訓練 Unity 專案
 
 原創的 Unity 3D 無人機練習專案，支援 **手機直接玩** 與 **手機當 Wi-Fi 遙控器、電腦顯示模擬場景**。同一份 Unity 原始碼可建置 Windows、Android 與 iOS。專案獨立於母目錄的 DJI／Android 程式，沒有真機飛控介面。
@@ -8,7 +10,7 @@
 
 ![Unity 實際渲染的飛行場景](docs/screenshots/desktop-scene.png)
 
-其他實際介面：[手機遙控器](docs/screenshots/phone-remote.png)、[電腦接收模式](docs/screenshots/desktop-host.png)。
+其他實際介面：[手機搖桿→電腦](docs/screenshots/phone-remote.png)、[電腦接收模式](docs/screenshots/desktop-host.png)。
 
 ## 快速開始
 
@@ -16,7 +18,7 @@
 2. Hub → Add project from disk → 選本資料夾 `unity-drone-simulator`，不要選外面的 Android 專案。
 3. 首次匯入會執行 `TrainerBuild.Configure()`，設定橫向、套件名稱、Android 網路權限、場景清單及材質。第一次需讓 Package Manager 取得 Unity UGUI 相依套件。
 4. 選單 **Drone Trainer → 2. Open training scene**，或開啟 `Assets/DroneTrainer/Scenes/Trainer.unity`，按 Play。
-5. 選「手機／單機飛行」→「起飛」。3D 場景與 UI 在 Play 時由程式產生，編輯模式的 Hierarchy 只有啟動物件是正常的。
+5. 選「本機畫面＋搖桿」→「起飛」。3D 場景與 UI 在 Play 時由程式產生，編輯模式的 Hierarchy 只有啟動物件是正常的。
 
 不需要 Asset Store 素材、帳號服務或 DJI App Key。中文字型已附於 Resources，離線執行不需下載資源。
 
@@ -40,7 +42,7 @@
 
 ## 手機直接模擬飛行
 
-Android 安裝自行建置的 APK；iPhone/iPad 安裝自行簽署的 iOS App。進入「手機／單機飛行」，按「起飛」會先自動升到約 2 公尺，之後自行操控。往橘色機頭方向為「前」。
+Android 安裝自行建置的 APK；iPhone/iPad 安裝自行簽署的 iOS App。進入「本機畫面＋搖桿」，按「起飛」會先自動升到約 2 公尺，之後自行操控。往橘色機頭方向為「前」。
 
 | 配置 | 左桿上下 | 左桿左右 | 右桿上下 | 右桿左右 |
 |---|---|---|---|---|
@@ -55,9 +57,9 @@ Android 安裝自行建置的 APK；iPhone/iPad 安裝自行簽署的 iOS App。
 ## 手機控制電腦
 
 1. 電腦與手機連上同一個 Wi-Fi／區域網路；避免訪客網路的裝置隔離。
-2. 電腦執行 Windows 版或 Unity Play，選「電腦接收手機」→「啟動接收」。
+2. 電腦執行 Windows 版或 Unity Play，選「電腦畫面接收端」→「啟動接收」。
 3. 畫面列出電腦 IPv4 與六位配對碼；有多個 IP 時選 Wi-Fi 網卡的位址，可用 `ipconfig` 核對。
-4. 手機選「手機遙控器」，輸入電腦 IPv4 與當次配對碼，按「連線」。
+4. 手機選「手機搖桿→電腦」，輸入電腦 IPv4 與當次配對碼，按「連線」。
 5. 看到已連線及遙測後，手機按「起飛」，用雙搖桿操作。練習項目、風與場景視角在電腦設定。
 6. 電腦防火牆若提示連線權限，允許此程式使用私人網路。協定為 **UDP 47777**，不是 TCP；Unity Editor 與 EXE 不可同時占用接收埠。
 7. iOS 若出現區域網路權限提示請允許；授權對話框可能使 App 暫停，回到 App 後重新啟動接收並配對即可。

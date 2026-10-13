@@ -31,7 +31,7 @@ namespace DroneTrainer
             camera.backgroundColor = new Color(.64f, .78f, .86f); camera.farClipPlane = 200; camera.nearClipPlane = .05f;
             camera.transform.position = new Vector3(-5, 4, -8); camera.gameObject.AddComponent<AudioListener>();
             CameraRig = camera.gameObject.AddComponent<FlightCamera>(); CameraRig.target = Drone.transform;
-            Course = gameObject.AddComponent<PracticeCourse>(); Course.drone = Drone; Course.Configure(PracticeKind.Free);
+            Course = gameObject.AddComponent<PracticeCourse>(); Course.drone = Drone; Course.Configure(PracticeKind.Free); CameraRig.Course = Course;
             Link = gameObject.AddComponent<RemoteLink>();
             Link.CommandReceived = Command;
             Link.LinkLost = () => { if (Drone != null && Drone.Body != null) Drone.Neutralize(); if (Hud != null) Hud.ClearSticks(); };
@@ -39,6 +39,8 @@ namespace DroneTrainer
                 heading = Drone.transform.eulerAngles.y, flying = Drone.Flying, crashed = Drone.Crashed,
                 task = Paused ? "電腦已暫停" : Course.Instruction };
             Hud = gameObject.AddComponent<TrainerHud>(); Hud.Build(this);
+            var launch = Resources.Load<TextAsset>("TrainerLaunch");
+            SetRole(launch != null && launch.text.Trim() == "remote" ? RunRole.Remote : RunRole.Local);
         }
         void Update()
         {

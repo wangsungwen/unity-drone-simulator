@@ -17,7 +17,8 @@ namespace DroneTrainer
         Sprite circle;
         Text telemetry, task, linkStatus, leftLabel, rightLabel, flightState, cameraLabel, pauseLabel, modeLabel, networkButtonLabel;
         Text windLabel, sensitivityLabel, throttleLabel;
-        Text hostAddress;
+        Text hostAddress, roleDescription;
+        Button localRole, hostRole, remoteRole;
         InputField ip, code;
         GameObject network, settings, remoteBackdrop, practiceMenu;
         Text profileLabel;
@@ -59,11 +60,11 @@ namespace DroneTrainer
             var top = Group("Top", safe, true, 1540, 240);
             Panel("Header", top, 0, 0, 1540, 74, panel);
             Label(top, "DRONE / 無人機飛行訓練", 24, 0, 640, 46, 29, Color.white);
-            Label(top, "原創模擬器  /  參照民航局術科項目  /  離線可玩", 25, 43, 650, 27, 16, muted);
-            flightState = Label(top, "待命", 1210, 12, 300, 50, 25, accent, TextAnchor.MiddleRight);
-            Button(top, "手機／單機飛行", 0, 86, 240, 54, () => app.SetRole(RunRole.Local));
-            Button(top, "電腦接收手機", 250, 86, 240, 54, () => app.SetRole(RunRole.Host));
-            Button(top, "手機遙控器", 500, 86, 240, 54, () => app.SetRole(RunRole.Remote));
+            roleDescription = Label(top, "手機飛行模擬 / 電腦遙控器 • 雙模式", 25, 43, 650, 27, 16, muted);
+            flightState = Label(top, "待命", 1270, 12, 240, 50, 22, accent, TextAnchor.MiddleRight);
+            localRole = Button(top, "本機畫面＋搖桿", 0, 86, 240, 54, () => app.SetRole(RunRole.Local));
+            hostRole = Button(top, "電腦畫面接收端", 250, 86, 240, 54, () => app.SetRole(RunRole.Host));
+            remoteRole = Button(top, "手機搖桿→電腦", 500, 86, 240, 54, () => app.SetRole(RunRole.Remote));
             practiceButton = Button(top, "練習項目", 1000, 86, 180, 54, OpenPracticeMenu);
             Button(top, "控制設定", 1190, 86, 170, 54, () => settings.SetActive(!settings.activeSelf));
             Button(top, "說明", 1370, 86, 170, 54, () => help.SetActive(!help.activeSelf));
@@ -82,26 +83,25 @@ namespace DroneTrainer
             linkStatus = Label(networkRect, "", 802, 8, 720, 56, 18, accent);
             hostAddress = Label(networkRect, "", 14, 8, 460, 56, 18, Color.white);
 
-            var bottom = Group("Bottom", safe, false, 1540, 310);
-            Left = Stick(bottom, 12, 18); Right = Stick(bottom, 1278, 18);
-            leftLabel = Label(bottom, "", 0, 275, 280, 32, 20, Color.white, TextAnchor.MiddleCenter);
-            rightLabel = Label(bottom, "", 1260, 275, 280, 32, 20, Color.white, TextAnchor.MiddleCenter);
-            Panel("Telemetry", bottom, 325, 18, 890, 90, panel);
-            telemetry = Label(bottom, "", 346, 24, 850, 74, 25, Color.white, TextAnchor.MiddleCenter);
-            Panel("Task guidance", bottom, 300, -100, 940, 107, panel);
-            task = Label(bottom, "", 300, -100, 940, 107, 20, Color.white, TextAnchor.MiddleCenter);
-            Button(bottom, "起飛", 370, 124, 180, 64, () => app.Command("takeoff"), accent);
-            Button(bottom, "降落", 562, 124, 180, 64, () => app.Command("land"));
-            Button(bottom, "重置", 754, 124, 180, 64, () => app.Command("reset"));
-            var pause = Button(bottom, "暫停", 946, 124, 180, 64, () =>
+            telemetry = Label(top, "", 660, 4, 600, 64, 22, Color.white, TextAnchor.MiddleRight);
+            var bottom = Group("Bottom", safe, false, 1540, 230);
+            Left = Stick(bottom, 12, -30); Right = Stick(bottom, 1278, -30);
+            leftLabel = Label(bottom, "", 0, 200, 280, 30, 20, Color.white, TextAnchor.MiddleCenter);
+            rightLabel = Label(bottom, "", 1260, 200, 280, 30, 20, Color.white, TextAnchor.MiddleCenter);
+            Panel("Task guidance - bottom edge", bottom, 300, 146, 940, 80, new Color(.035f,.075f,.10f,.72f));
+            task = Label(bottom, "", 312, 148, 916, 76, 18, Color.white, TextAnchor.MiddleLeft);
+            Button(bottom, "起飛", 370, 12, 180, 54, () => app.Command("takeoff"), accent);
+            Button(bottom, "降落", 562, 12, 180, 54, () => app.Command("land"));
+            Button(bottom, "重置", 754, 12, 180, 54, () => app.Command("reset"));
+            var pause = Button(bottom, "暫停", 946, 12, 180, 54, () =>
             { if (app.Link.Role != RunRole.Remote) app.SetPaused(!app.Paused); });
             pauseLabel = pause.GetComponentInChildren<Text>();
             pauseButton = pause;
-            var cam = Button(bottom, "視角：追蹤", 390, 205, 330, 54, () => app.CameraRig.Cycle()); cameraLabel = cam.GetComponentInChildren<Text>();
+            var cam = Button(bottom, "視角：全景俯視", 330, 80, 430, 52, () => app.CameraRig.Cycle()); cameraLabel = cam.GetComponentInChildren<Text>();
             cameraButton = cam;
-            var mode = Button(bottom, "", 736, 205, 390, 54, () =>
+            var mode = Button(bottom, "", 776, 80, 430, 52, () =>
             { app.Mode = (StickMode)(((int)app.Mode + 1) % 3); ClearSticks(); app.SavePreferences(); }); modeLabel = mode.GetComponentInChildren<Text>();
-            Label(bottom, "WASD = 左桿  ·  方向鍵 = 右桿  ·  Space 起降  ·  R 重置  ·  C 視角", 300, 278, 940, 26, 16, muted, TextAnchor.MiddleCenter);
+
             BuildSettings(); BuildHelp(); BuildPracticeMenu(); RefreshRole(); UpdateSafeArea();
         }
         GameObject help;
@@ -111,13 +111,13 @@ namespace DroneTrainer
             Panel("Background", box, 0, 0, 1050, 490, panel);
             Label(box, "開始練習", 30, 15, 850, 55, 30, accent);
             Label(box,
-                "1  選單機 → 起飛 → 使用雙搖桿；放手回中即定高／定位。\n" +
-                "2  預設 Mode 2：左桿升降／轉向，右桿前後／左右。\n" +
+                "1  手機飛行模擬器：選本機畫面＋搖桿，直接在手機飛行。\n" +
+                "2  電腦遙控器：手機只顯示搖桿，飛行場景顯示在電腦。\n" +
                 "3 「練習項目」選級別及科目；停懸須位置、航向穩定 5 秒。\n" +
                 "4  電腦選接收手機 → 啟動接收；手機選遙控器，\n" +
                 "     填電腦 Wi-Fi IPv4 與畫面六位碼 → 連線。\n" +
                 "5  兩端需同一區域網路，電腦允許 UDP 47777。\n" +
-                "6  斷線／手機切到背景後須重新啟動接收與配對。\n\n" +
+                "6  預設全景俯視；可切換眼高操作員、跟隨及機頭視角。\n\n" +
                 "參照 AC 107-005D；容差為訓練設定，非正式測驗評分。",
                 30, 80, 990, 330, 22, Color.white);
             Button(box, "了解，開始飛行", 710, 422, 310, 52, () => help.SetActive(false), accent);
@@ -144,8 +144,16 @@ namespace DroneTrainer
         public void RefreshRole()
         {
             bool remote = app.Link.Role == RunRole.Remote;
+            roleDescription.text = remote ? "電腦遙控器：搖桿控制電腦，請先配對" : app.Link.Role == RunRole.Host ? "電腦接收端：請用手機遙控器 App 連線" : "本機飛行：雙搖桿控制此裝置畫面，免連線";
+            foreach (var button in new[] { localRole, hostRole, remoteRole })
+            {
+                bool selected = button == (remote ? remoteRole : app.Link.Role == RunRole.Host ? hostRole : localRole);
+                var colors = button.colors; colors.normalColor = selected ? accent : Color.white; button.colors = colors;
+                button.GetComponent<Image>().color = selected ? new Color(.2f,.4f,.42f) : new Color(.10f,.18f,.22f);
+            }
             if (practiceMenu != null) practiceMenu.SetActive(false);
             network.SetActive(app.Link.Role != RunRole.Local); remoteBackdrop.SetActive(remote);
+            leftLabel.gameObject.SetActive(app.Link.Role != RunRole.Host); rightLabel.gameObject.SetActive(app.Link.Role != RunRole.Host);
             ip.gameObject.SetActive(remote); code.gameObject.SetActive(remote);
             hostAddress.gameObject.SetActive(!remote);
             networkButtonLabel.text = remote ? "連線" : "啟動接收";
