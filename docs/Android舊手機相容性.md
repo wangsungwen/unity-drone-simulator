@@ -23,7 +23,7 @@ Unity 2022.3 官方最低 Android 系統為 5.1，不能將設定改成 API 21 �
 
 ## 若手機是 Android 5.0
 
-先確認原廠是否提供升級至 5.1 以上。若無法升級且需求是「手機遙控電腦」，可另製 Android 原生輕量遙控 App，沿用本專案 UDP 配對及控制協定，避免 Unity 引擎的最低系統限制；此替代 App 尚未實作。若還需要手機執行完整 3D 模擬，需另行評估舊 Unity 分支與所有功能的相容性，不能沿用目前 APK 宣稱支援。
+先確認原廠是否提供升級至 5.1 以上。若無法升級且需求是「手機遙控電腦」，已另製 [Android 原生輕量遙控器 1.0.0](../AndroidLegacyRemote/README.md)，沿用本專案 UDP 配對及控制協定。安裝 `Builds/AndroidLegacyRemote/DroneLegacyRemote.apk`，最低 Android 5.0；仍待實機驗收。若還需要手機執行完整 3D 模擬，需另行評估舊 Unity 分支與所有功能的相容性，不能沿用目前 APK 宣稱支援。
 
 ## 建置
 

@@ -6,7 +6,7 @@ Unity 3D 無人機模擬器，支援手機直接操作，以及手機透過同�
 
 本機後續更新以 `D:\ResearchCodes\Mavic2Autonomy` 為主，Unity 專案位於其下 `unity-drone-simulator`；版本化舊資料夾保留作歷史備份。
 
-Android 兩種 App 的最低版本調整為 **Android 5.1 / API 22**，同時包含 **ARMv7（需 NEON）與 ARM64**，使用 OpenGL ES 3.0／2.0。Android 5.0 / API 21 不在 Unity 2022.3 的支援範圍。最低安裝版本與 target SDK 不同，target SDK 保持 34。
+Android 兩種 App 的最低版本調整為 **Android 5.1 / API 22**，同時包含 **ARMv7（需 NEON）與 ARM64**，使用 OpenGL ES 3.0／2.0。Android 5.0 / API 21 不在 Unity 2022.3 的支援範圍；可使用另製的 [Android 5.0 原生輕量遙控器](AndroidLegacyRemote/README.md) 控制電腦畫面。最低安裝版本與 target SDK 不同，target SDK 保持 34。
 
 本次 Android 相容性更新可用 `python tools/package-platforms.py --platform Android` 單獨打包；既有 Windows 與 iOS v0.2.1 成品保留。舊手機的安裝、雙指操控、3D 效能及 Wi-Fi 配對仍需實機驗收。詳見 [Android 舊手機安裝說明](docs/Android舊手機相容性.md)。
 

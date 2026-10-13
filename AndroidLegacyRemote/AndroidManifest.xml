@@ -1,0 +1,10 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="tw.traininglab.dronesimulator.legacyremote" android:versionCode="1" android:versionName="1.0.0">
+    <uses-sdk android:minSdkVersion="21" android:targetSdkVersion="34" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-feature android:name="android.hardware.touchscreen" android:required="true" />
+    <application android:label="無人機輕量遙控器" android:theme="@android:style/Theme.Material.NoActionBar" android:allowBackup="false" android:supportsRtl="true">
+        <activity android:name="tw.traininglab.legacyremote.MainActivity" android:screenOrientation="sensorLandscape" android:exported="true" android:windowSoftInputMode="adjustResize">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+        </activity>
+    </application>
+</manifest>
