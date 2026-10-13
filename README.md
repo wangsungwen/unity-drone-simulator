@@ -2,6 +2,14 @@
 
 Unity 3D 無人機模擬器，支援手機直接操作，以及手機透過同一個 Wi-Fi 當作電腦模擬器的雙搖桿遙控器。
 
+## Hugging Face 線上網頁版
+
+新增 [HuggingFaceSpace](HuggingFaceSpace/README.md)：雙搖桿與 3D 畫面同頁、七種練習選項、三種視角及鍵盤操控。將該資料夾內容放到 Hugging Face Static Space 根目錄即可部署，不需要 Unity 或 GPU。
+
+此為獨立 JavaScript 簡化訓練版本，沒有跨裝置遙控與 Windows 畫面串流，不等同 Unity 完整術科判定。部署包見 [Web 0.1.0 發行頁](https://github.com/wangsungwen/unity-drone-simulator/releases/tag/web-v0.1.0)。
+
+![網頁線上飛行畫面](docs/screenshots/web-online.png)
+
 ## 最新版下載
 
 請前往 [v0.2.2 發行頁](https://github.com/wangsungwen/unity-drone-simulator/releases/tag/v0.2.2) 下載：

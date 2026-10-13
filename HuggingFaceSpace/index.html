@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Drone Training Lab · 線上飛行</title><link rel="stylesheet" href="style.css"></head>
+<body><main id="app">
+ <div id="scene" aria-label="無人機三維飛行場景"></div>
+ <header><div><b>DRONE <span>TRAINING LAB</span></b><small>網頁飛行模擬 · 搖桿與畫面同頁</small></div><div id="telemetry" aria-live="off">高度 0.0 m　速度 0.0 m/s　航向 000°</div><button id="help">操作說明</button></header>
+ <nav aria-label="訓練設定">
+  <label>練習 <select id="course"><option value="free">自由飛行</option><option value="hover">四面停懸</option><option value="rectangle">12 × 5 m 雙向矩形</option><option value="eight">8 字水平圓</option><option value="sideways">側面前後飛行</option><option value="circuit">20 m 五邊航線</option><option value="landing">定點降落</option></select></label>
+  <label>尺寸 <select id="scale"><option value="1">基本級 I / 1×</option><option value="1.5">基本級 II / 1.5×</option><option value="2">基本級 III / 2×</option></select></label>
+  <button id="camera">視角：全景俯視</button><button id="fullscreen">全螢幕</button>
+ </nav>
+ <div id="status" role="status">準備就緒 · 點起飛開始</div>
+ <div id="error" role="alert" hidden></div>
+ <section id="controls" aria-label="飛行遙控器">
+  <div class="stick-wrap"><div class="stick" id="left" aria-label="左搖桿" role="group"><i></i><div class="knob"></div></div><small id="left-label">左桿：升降 / 轉向</small></div>
+  <div class="center"><div class="actions"><button id="takeoff" class="primary">起飛</button><button id="land">降落</button><button id="pause">暫停</button><button id="reset">重置</button></div>
+   <div class="options"><label>搖桿 <select id="mode"><option value="2">Mode 2 美國手</option><option value="1">Mode 1 日本手</option><option value="3">Mode 3</option></select></label><label>靈敏度 <input id="sensitivity" type="range" min="20" max="100" value="70" aria-label="搖桿靈敏度"></label><label>側風 <select id="wind"><option value="0">無風</option><option value="0.3">弱風</option><option value="0.7">中風</option></select></label></div>
+   <div class="progress"><div id="progress"></div></div><div id="task">選擇練習項目，或自由飛行探索場域。</div>
+  </div>
+  <div class="stick-wrap"><div class="stick" id="right" aria-label="右搖桿" role="group"><i></i><div class="knob"></div></div><small id="right-label">右桿：前後 / 左右</small></div>
+ </section>
+ <footer>網頁版 0.1.0 · 簡化訓練模型，非正式術科評分 · 橘色機頭為前方</footer>
+ <dialog id="guide"><h2>在瀏覽器中練習飛行</h2><p>按「起飛」自動上升至約 1.5 公尺，再用雙搖桿操作。手機建議橫向使用，兩指可同時控制左右搖桿。</p><p>預設 Mode 2：左桿上下升降、左右轉向；右桿上下前後、左右側移。移動方向依機頭朝向決定。</p><p>電腦鍵盤：W/S 升降、A/D 轉向；方向鍵前後左右。Space 起飛／降落、P 暫停、C 切視角、R 重置。鍵盤軸向會隨 Mode 改變。</p><p>青色線是練習路線，亮色圓環是目前目標。依指示控制位置、高度及機頭方向，停懸時需連續穩定 5 秒。變更練習會重置飛機。</p><p>此版本在您自己的瀏覽器繪製 3D 場景，沒有真機控制、電腦桌面串流或跨裝置配對。切換分頁會自動暫停，回來後按「繼續」。網頁練習判定為簡化回饋，完整術科功能請使用 Unity 版本。</p><button id="close-help" class="primary">了解，開始練習</button></dialog>
+</main><script type="module" src="app.js"></script></body></html>

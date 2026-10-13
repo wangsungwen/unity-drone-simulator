@@ -1,0 +1,28 @@
+const {chromium}=require('playwright');
+const assert=require('node:assert/strict');
+require('node:fs').mkdirSync('../TestResults',{recursive:true});
+(async()=>{
+ const browser=await chromium.launch({headless:true,channel:process.env.PW_CHANNEL||'chrome',args:['--enable-unsafe-swiftshader']});
+ const page=await browser.newPage({viewport:{width:1440,height:900}});const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto('http://127.0.0.1:7860');await page.waitForSelector('canvas');await page.waitForTimeout(1000);
+ await page.screenshot({path:'../TestResults/web-desktop.png'});
+ await page.locator('#takeoff').click();await page.waitForFunction(()=>document.querySelector('#telemetry').textContent.includes('1.5 m'),{},{timeout:20000});
+ await page.keyboard.down('ArrowUp');await page.waitForTimeout(800);await page.keyboard.up('ArrowUp');
+ assert.ok(! (await page.locator('#telemetry').innerText()).includes('速度 0.0'));
+ await page.locator('#pause').click();await page.waitForTimeout(150);const frozen=await page.locator('#telemetry').innerText();await page.waitForTimeout(300);assert.equal(await page.locator('#telemetry').innerText(),frozen);
+ await page.locator('#reset').click();await page.waitForTimeout(200);assert.match(await page.locator('#telemetry').innerText(),/高度 0.0/);
+ await page.locator('#course').selectOption('circuit');await page.locator('#scale').selectOption('2');await page.waitForTimeout(200);await page.screenshot({path:'../TestResults/web-circuit.png'});
+ await page.locator('#help').click();assert.ok(await page.locator('#guide').isVisible());await page.locator('#close-help').click();
+ const mobile=await browser.newPage({viewport:{width:844,height:390},isMobile:true,hasTouch:true,deviceScaleFactor:1});mobile.on('pageerror',e=>errors.push(e.message));await mobile.goto('http://127.0.0.1:7860');await mobile.waitForTimeout(700);
+ const cdp=await mobile.context().newCDPSession(mobile);
+ const a=await mobile.locator('#left').boundingBox(),b=await mobile.locator('#right').boundingBox();
+ await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{id:1,x:a.x+a.width/2,y:a.y+10},{id:2,x:b.x+b.width-10,y:b.y+b.height/2}]});
+ assert.notEqual(await mobile.locator('#left .knob').evaluate(el=>el.style.transform),'');assert.notEqual(await mobile.locator('#right .knob').evaluate(el=>el.style.transform),'');
+ await mobile.screenshot({path:'../TestResults/web-mobile.png'});
+ await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+ assert.equal(await mobile.locator('#left .knob').evaluate(el=>el.style.transform),'translate(-50%, -50%)');
+ await mobile.setViewportSize({width:390,height:844});await mobile.waitForTimeout(300);await mobile.screenshot({path:'../TestResults/web-portrait.png'});
+ assert.equal(await mobile.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+ assert.deepEqual(errors,[]);console.log('PASS: browser render, takeoff, keyboard motion, pause, reset, route menu, help, simultaneous touch, release, portrait overflow; no JS errors');
+ await browser.close();
+})().catch(e=>{console.error(e);process.exit(1)});
