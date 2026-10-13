@@ -87,7 +87,7 @@ PowerShell 7 範例：
 .\tools\build.ps1 -Unity 'C:\Program Files\Unity\Hub\Editor\2022.3.62f2\Editor\Unity.exe' -Target Android
 ```
 
-輸出分別在 `Builds/Windows/DroneTrainingLab.exe` 與 `Builds/Android/DroneTrainingLab.apk`。Windows 版需連同其 `_Data` 與 DLL 一起分享，不要只複製 EXE。Android 使用 ARM64、最低 API 26（Android 8.0）、目標 API 34，預設開發測試簽署，不是已上架商店的發行檔。
+輸出分別在 `Builds/Windows/DroneTrainingLab.exe` 與 `Builds/Android/DroneTrainingLab.apk`。Windows 版需連同其 `_Data` 與 DLL 一起分享，不要只複製 EXE。Android v0.2.2 使用 ARMv7（NEON）與 ARM64、最低 API 22（Android 5.1）、目標 API 34；Android 5.0 不支援，預設開發測試簽署，不是已上架商店的發行檔。
 
 iOS 選單輸出 `Builds/iOS` Xcode 專案，已加入 `NSLocalNetworkUsageDescription`；在 Mac 用 Xcode 選 Apple 開發者團隊與簽署後安裝。沒有附 Apple 憑證，也沒有預建 IPA。UDP 桌面接收不支援 WebGL。
 

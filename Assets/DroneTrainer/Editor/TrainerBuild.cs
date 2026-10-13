@@ -26,9 +26,9 @@ namespace DroneTrainer.Editor
         {
             PlayerSettings.companyName = "Independent Drone Lab";
             PlayerSettings.productName = "Drone Training Lab";
-            PlayerSettings.bundleVersion = "0.2.1";
-            PlayerSettings.Android.bundleVersionCode = 3;
-            PlayerSettings.iOS.buildNumber = "3";
+            PlayerSettings.bundleVersion = "0.2.2";
+            PlayerSettings.Android.bundleVersionCode = 4;
+            PlayerSettings.iOS.buildNumber = "4";
             PlayerSettings.SetApplicationIdentifier(BuildTargetGroup.Android, "tw.traininglab.dronesimulator");
             PlayerSettings.SetApplicationIdentifier(BuildTargetGroup.iOS, "tw.traininglab.dronesimulator");
             PlayerSettings.defaultInterfaceOrientation = UIOrientation.LandscapeLeft;
@@ -39,9 +39,15 @@ namespace DroneTrainer.Editor
             PlayerSettings.defaultScreenWidth = 1600; PlayerSettings.defaultScreenHeight = 900;
             PlayerSettings.fullScreenMode = FullScreenMode.Windowed;
             PlayerSettings.runInBackground = true;
-            PlayerSettings.Android.minSdkVersion = AndroidSdkVersions.AndroidApiLevel26;
+            // Unity 2022.3 supports Android 5.1+, including 32-bit ARMv7/NEON phones.
+            PlayerSettings.Android.minSdkVersion = AndroidSdkVersions.AndroidApiLevel22;
             PlayerSettings.Android.targetSdkVersion = AndroidSdkVersions.AndroidApiLevel34;
-            PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64;
+            PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARMv7 | AndroidArchitecture.ARM64;
+            PlayerSettings.SetUseDefaultGraphicsAPIs(BuildTarget.Android, false);
+            PlayerSettings.SetGraphicsAPIs(BuildTarget.Android, new[] {
+                UnityEngine.Rendering.GraphicsDeviceType.OpenGLES3,
+                UnityEngine.Rendering.GraphicsDeviceType.OpenGLES2
+            });
             PlayerSettings.Android.forceInternetPermission = true;
             PlayerSettings.SetScriptingBackend(BuildTargetGroup.Android, ScriptingImplementation.IL2CPP);
             PlayerSettings.SetScriptingBackend(BuildTargetGroup.iOS, ScriptingImplementation.IL2CPP);

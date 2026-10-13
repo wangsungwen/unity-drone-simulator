@@ -1,32 +1,47 @@
-"""Package v0.2.1 Windows and both mobile app variants, validating launch modes."""
+"""Package selected platforms and validate mobile launch modes."""
 from pathlib import Path
+import argparse
 import hashlib
 import json
 import plistlib
 import struct
+import subprocess
 import zipfile
 
 project = Path(__file__).resolve().parents[1]
 builds = project / 'Builds'
-version = '0.2.1'
+version = '0.2.2'
+parser = argparse.ArgumentParser()
+parser.add_argument('--platform', choices=['Windows', 'Android', 'iOS-Xcode', 'all'], default='all')
+parser.add_argument('--aapt', default='aapt', help='Android SDK build-tools aapt executable')
+args = parser.parse_args()
+selected = args.platform
 
 def launch_signature(mode):
     data = mode.encode()
     return b'TrainerLaunch\x00\x00\x00' + struct.pack('<I', len(data)) + data
 
-for folder, apk, mode in [('Android','DroneTrainingLab.apk','local'),('AndroidRemote','DroneRemoteController.apk','remote')]:
-    with zipfile.ZipFile(builds / folder / apk) as z:
-        assert any(launch_signature(mode) in z.read(n) for n in z.namelist() if n.startswith('assets/bin/Data/') and not n.endswith('/')), f'{folder} launch mode'
+if selected in ('all', 'Android'):
+    for folder, apk, mode in [('Android','DroneTrainingLab.apk','local'),('AndroidRemote','DroneRemoteController.apk','remote')]:
+        badging = subprocess.check_output([args.aapt, 'dump', 'badging', str(builds / folder / apk)], encoding='utf-8')
+        assert f"versionName='{version}'" in badging, f'{folder} stale APK version'
+        assert "sdkVersion:'22'" in badging, f'{folder} minimum Android API'
+        assert "targetSdkVersion:'34'" in badging, f'{folder} target Android API'
+        assert "'armeabi-v7a'" in badging and "'arm64-v8a'" in badging, f'{folder} native architectures'
+        assert "uses-gl-es: '0x20000'" in badging, f'{folder} minimum OpenGL ES'
+        with zipfile.ZipFile(builds / folder / apk) as z:
+            assert any(launch_signature(mode) in z.read(n) for n in z.namelist() if n.startswith('assets/bin/Data/') and not n.endswith('/')), f'{folder} launch mode'
 
-for folder, mode in [('iOS','local'),('iOSRemote','remote')]:
-    root = builds / folder
-    with (root/'Info.plist').open('rb') as f:
-        info = plistlib.load(f)
-    assert info['CFBundleShortVersionString'] == version
-    assert info['NSLocalNetworkUsageDescription']
-    pbx = (root/'Unity-iPhone.xcodeproj/project.pbxproj').read_text(encoding='utf-8')
-    assert 'tw.traininglab.dronesimulator' + ('.remote' if mode=='remote' else '') in pbx
-    assert any(launch_signature(mode) in p.read_bytes() for p in (root/'Data').rglob('*') if p.is_file()), f'{folder} launch mode'
+if selected in ('all', 'iOS-Xcode'):
+    for folder, mode in [('iOS','local'),('iOSRemote','remote')]:
+        root = builds / folder
+        with (root/'Info.plist').open('rb') as f:
+            info = plistlib.load(f)
+        assert info['CFBundleShortVersionString'] == version
+        assert info['NSLocalNetworkUsageDescription']
+        pbx = (root/'Unity-iPhone.xcodeproj/project.pbxproj').read_text(encoding='utf-8')
+        assert 'tw.traininglab.dronesimulator' + ('.remote' if mode=='remote' else '') in pbx
+        assert any(launch_signature(mode) in p.read_bytes() for p in (root/'Data').rglob('*') if p.is_file()), f'{folder} launch mode'
 
 specs = {
     'Windows': [('Windows', None)],
@@ -35,11 +50,13 @@ specs = {
 }
 notes = {
     'Windows': '解壓縮 Windows 資料夾後執行 DroneTrainingLab.exe，請保留全部 DLL 與 _Data。要用手機遙控時選「電腦畫面接收端」，再啟動接收。',
-    'Android': '兩個 APK 可同時安裝：\nAndroid/DroneTrainingLab.apk：無人機飛行模擬器，搖桿直接控制手機畫面，免網路。\nAndroidRemote/DroneRemoteController.apk：無人機電腦遙控器，搖桿控制電腦畫面。\n遙控時兩端需同一區域網路，輸入電腦 IPv4 與六位配對碼，電腦允許 UDP 47777。\n最低 Android 8 / ARM64；測試簽署，實機驗收尚待完成。',
+    'Android': '兩個 APK 可同時安裝：\nAndroid/DroneTrainingLab.apk：無人機飛行模擬器，搖桿直接控制手機畫面，免網路。\nAndroidRemote/DroneRemoteController.apk：無人機電腦遙控器，搖桿控制電腦畫面。\n遙控時兩端需同一區域網路，輸入電腦 IPv4 與六位配對碼，電腦允許 UDP 47777。\n最低 Android 5.1（API 22）；ARMv7（需 NEON）或 ARM64；OpenGL ES 2.0 以上。Android 5.0 不支援；測試簽署，實機驗收尚待完成。',
     'iOS-Xcode': '兩個 Xcode 專案：iOS 為手機飛行模擬器，iOSRemote 為電腦遙控器，使用不同 Bundle ID。\n在 Mac 解壓，開啟各資料夾內 Unity-iPhone.xcodeproj，設定 Team 後編譯及簽署。\n這不是 IPA，不能直接安裝；最低 iOS 13。尚未在 Mac 編譯或真實 iPhone 驗收。',
 }
 manifest = []
 for platform, entries in specs.items():
+    if selected != 'all' and platform != selected:
+        continue
     output = builds / f'DroneTrainingLab-v{version}-{platform}.zip'
     with zipfile.ZipFile(output, 'w', zipfile.ZIP_DEFLATED, compresslevel=6) as z:
         for folder, single in entries:
@@ -55,4 +72,4 @@ for platform, entries in specs.items():
         checksum = hashlib.file_digest(f,'sha256').hexdigest()
     manifest.append({'file':output.name, 'bytes':output.stat().st_size, 'sha256':checksum})
     print('PASS:', output.name, output.stat().st_size, 'bytes', flush=True)
-(builds/f'DroneTrainingLab-v{version}-checksums.json').write_text(json.dumps(manifest,indent=2)+'\n',encoding='utf-8')
+(builds/f'DroneTrainingLab-v{version}-{selected}-checksums.json').write_text(json.dumps(manifest,indent=2)+'\n',encoding='utf-8')
