@@ -19,7 +19,10 @@ namespace DroneTrainer
         Text windLabel, sensitivityLabel, throttleLabel;
         Text hostAddress;
         InputField ip, code;
-        GameObject network, settings, remoteBackdrop;
+        GameObject network, settings, remoteBackdrop, practiceMenu;
+        Text profileLabel;
+        readonly System.Collections.Generic.List<Button> courseButtons = new System.Collections.Generic.List<Button>();
+        bool menuWasPaused;
         Button networkButton;
         Button practiceButton, cameraButton, pauseButton;
         readonly Color panel = new Color(.035f, .075f, .10f, .94f);
@@ -56,14 +59,15 @@ namespace DroneTrainer
             var top = Group("Top", safe, true, 1540, 240);
             Panel("Header", top, 0, 0, 1540, 74, panel);
             Label(top, "DRONE / 無人機飛行訓練", 24, 0, 640, 46, 29, Color.white);
-            Label(top, "原創模擬器  /  自訂術科練習  /  離線可玩", 25, 43, 650, 27, 16, muted);
+            Label(top, "原創模擬器  /  參照民航局術科項目  /  離線可玩", 25, 43, 650, 27, 16, muted);
             flightState = Label(top, "待命", 1210, 12, 300, 50, 25, accent, TextAnchor.MiddleRight);
             Button(top, "手機／單機飛行", 0, 86, 240, 54, () => app.SetRole(RunRole.Local));
             Button(top, "電腦接收手機", 250, 86, 240, 54, () => app.SetRole(RunRole.Host));
             Button(top, "手機遙控器", 500, 86, 240, 54, () => app.SetRole(RunRole.Remote));
-            practiceButton = Button(top, "練習項目", 1000, 86, 180, 54, CyclePractice);
+            practiceButton = Button(top, "練習項目", 1000, 86, 180, 54, OpenPracticeMenu);
             Button(top, "控制設定", 1190, 86, 170, 54, () => settings.SetActive(!settings.activeSelf));
             Button(top, "說明", 1370, 86, 170, 54, () => help.SetActive(!help.activeSelf));
+            Button(top, "程序確認", 750, 86, 240, 54, () => app.Command("confirm"));
             var networkRect = Panel("Network", top, 0, 150, 1540, 72, panel); network = networkRect.gameObject;
             ip = InputBox(networkRect, "電腦 IPv4", 14, 10, 260, "192.168.1.10");
             code = InputBox(networkRect, "六位配對碼", 286, 10, 190, ""); code.contentType = InputField.ContentType.IntegerNumber; code.characterLimit = 6;
@@ -84,7 +88,8 @@ namespace DroneTrainer
             rightLabel = Label(bottom, "", 1260, 275, 280, 32, 20, Color.white, TextAnchor.MiddleCenter);
             Panel("Telemetry", bottom, 325, 18, 890, 90, panel);
             telemetry = Label(bottom, "", 346, 24, 850, 74, 25, Color.white, TextAnchor.MiddleCenter);
-            task = Label(bottom, "", 300, -73, 940, 80, 21, Color.white, TextAnchor.MiddleCenter);
+            Panel("Task guidance", bottom, 300, -100, 940, 107, panel);
+            task = Label(bottom, "", 300, -100, 940, 107, 20, Color.white, TextAnchor.MiddleCenter);
             Button(bottom, "起飛", 370, 124, 180, 64, () => app.Command("takeoff"), accent);
             Button(bottom, "降落", 562, 124, 180, 64, () => app.Command("land"));
             Button(bottom, "重置", 754, 124, 180, 64, () => app.Command("reset"));
@@ -97,7 +102,7 @@ namespace DroneTrainer
             var mode = Button(bottom, "", 736, 205, 390, 54, () =>
             { app.Mode = (StickMode)(((int)app.Mode + 1) % 3); ClearSticks(); app.SavePreferences(); }); modeLabel = mode.GetComponentInChildren<Text>();
             Label(bottom, "WASD = 左桿  ·  方向鍵 = 右桿  ·  Space 起降  ·  R 重置  ·  C 視角", 300, 278, 940, 26, 16, muted, TextAnchor.MiddleCenter);
-            BuildSettings(); BuildHelp(); RefreshRole(); UpdateSafeArea();
+            BuildSettings(); BuildHelp(); BuildPracticeMenu(); RefreshRole(); UpdateSafeArea();
         }
         GameObject help;
         void BuildHelp()
@@ -108,12 +113,12 @@ namespace DroneTrainer
             Label(box,
                 "1  選單機 → 起飛 → 使用雙搖桿；放手回中即定高／定位。\n" +
                 "2  預設 Mode 2：左桿升降／轉向，右桿前後／左右。\n" +
-                "3 「練習項目」依序切換自由、懸停、方形、8 字、降落。\n" +
+                "3 「練習項目」選級別及科目；停懸須位置、航向穩定 5 秒。\n" +
                 "4  電腦選接收手機 → 啟動接收；手機選遙控器，\n" +
                 "     填電腦 Wi-Fi IPv4 與畫面六位碼 → 連線。\n" +
                 "5  兩端需同一區域網路，電腦允許 UDP 47777。\n" +
                 "6  斷線／手機切到背景後須重新啟動接收與配對。\n\n" +
-                "練習場為自訂規則，非正式測驗評分；本程式只控制虛擬飛機。",
+                "參照 AC 107-005D；容差為訓練設定，非正式測驗評分。",
                 30, 80, 990, 330, 22, Color.white);
             Button(box, "了解，開始飛行", 710, 422, 310, 52, () => help.SetActive(false), accent);
             help = box.gameObject; help.SetActive(false);
@@ -132,13 +137,14 @@ namespace DroneTrainer
             Slider(box, 390, 221, 0, 0, 6, value => { app.Drone.windSpeed = value; });
             Button(box, "定位／姿態模式切換", 30, 295, 450, 55, () =>
             { app.Drone.positionHold = !app.Drone.positionHold; app.Drone.Neutralize(); });
-            Button(box, "風向旋轉 45°", 510, 295, 510, 55, () => app.Drone.windHeading = (app.Drone.windHeading + 45) % 360);
-            Label(box, "風與定位設定影響本機場景；遙控器模式請在電腦調整。", 30, 366, 990, 40, 19, muted);
+            Button(box, "風向旋轉 45°", 510, 295, 510, 55, () => { if (app.Course.Kind != PracticeKind.Circuit && app.Course.Kind != PracticeKind.Emergency) app.Drone.windHeading = (app.Drone.windHeading + 45) % 360; });
+            Label(box, "五邊／返航練習固定東風；飛行模式須配合應考資格註記。", 30, 366, 990, 40, 19, muted);
             settings = box.gameObject; settings.SetActive(false);
         }
         public void RefreshRole()
         {
             bool remote = app.Link.Role == RunRole.Remote;
+            if (practiceMenu != null) practiceMenu.SetActive(false);
             network.SetActive(app.Link.Role != RunRole.Local); remoteBackdrop.SetActive(remote);
             ip.gameObject.SetActive(remote); code.gameObject.SetActive(remote);
             hostAddress.gameObject.SetActive(!remote);
@@ -147,10 +153,35 @@ namespace DroneTrainer
             Left.gameObject.SetActive(app.Link.Role != RunRole.Host); Right.gameObject.SetActive(app.Link.Role != RunRole.Host);
         }
         public void ClearSticks() { Left?.Clear(); Right?.Clear(); }
-        void CyclePractice()
+        void BuildPracticeMenu()
         {
-            if (app.Link.Role == RunRole.Remote) return;
-            app.SelectPractice((PracticeKind)(((int)app.Course.Kind + 1) % 5));
+            var box = Group("Practice selection", safe, true, 1120, 590); box.anchoredPosition = new Vector2(0,-155);
+            Panel("Background", box, 0, 0, 1120, 590, panel);
+            Label(box,"術科練習 / AC 107-005D",24,12,870,42,28,accent);
+            Button(box,"關閉",948,12,150,46,() => { practiceMenu.SetActive(false); app.SetPaused(menuWasPaused); });
+            var profileButton = Button(box,"",24,68,1074,52,() =>
+            { app.SelectProfile((ExamProfile)(((int)app.Course.Profile+1)%4)); app.SetPaused(true); RefreshPracticeMenu(); });
+            profileLabel = profileButton.GetComponentInChildren<Text>();
+            for(int i=0;i<8;i++)
+            {
+                int index=i;
+                courseButtons.Add(Button(box,"",24+(i%2)*546,138+(i/2)*83,528,69,() =>
+                { app.SelectPractice(app.Course.Available[index]); practiceMenu.SetActive(false); }));
+            }
+            Label(box,"點上方切換：未達 2 kg / 基本級 I、II、III。高級組別尚未納入。\n程序複習按「程序確認」逐項自查；飛行科目用雙搖桿完成。\n高度、航向、連續停懸與起落架落點均會檢查；容差為訓練設定。",24,482,1074,96,20,muted);
+            practiceMenu=box.gameObject; practiceMenu.SetActive(false);
+        }
+        public void OpenPracticeMenu()
+        {
+            if(app.Link.Role==RunRole.Remote) return;
+            if(practiceMenu.activeSelf) { practiceMenu.SetActive(false); app.SetPaused(menuWasPaused); return; }
+            menuWasPaused=app.Paused; app.SetPaused(true); RefreshPracticeMenu(); practiceMenu.SetActive(true);
+        }
+        void RefreshPracticeMenu()
+        {
+            profileLabel.text=PracticeCourse.ProfileNames[(int)app.Course.Profile]+"  ▸ 點此切換級別";
+            var available=app.Course.Available;
+            for(int i=0;i<courseButtons.Count;i++) courseButtons[i].GetComponentInChildren<Text>().text=PracticeCourse.Names[(int)available[i]];
         }
         void Update()
         {
@@ -161,8 +192,7 @@ namespace DroneTrainer
             bool flying = remote ? t != null && t.flying : app.Drone.Flying;
             bool crashed = remote ? t != null && t.crashed : app.Drone.Crashed;
             flightState.text = app.Paused ? "已暫停" : crashed ? "碰撞 • 請重置" : flying ? "飛行中" : "待命 • 點起飛";
-            string[] courses = { "自由飛行", "定點懸停", "方形航線", "8 字航線", "定點降落" };
-            task.text = remote ? (t == null ? "配對電腦後即可控制；手機不傳送視訊" : t.task) : courses[(int)app.Course.Kind] + "\n" + app.Course.Instruction;
+            task.text = remote ? (t == null ? "配對電腦後即可控制；手機不傳送視訊" : t.task) : PracticeCourse.Names[(int)app.Course.Kind] + "\n" + app.Course.Instruction;
             telemetry.text = remote && t == null ? "高度 —    速度 —    航向 —" : string.Format("高度 {0:F1} m     速度 {1:F1} m/s     航向 {2:000}°\n{3}",
                 remote ? t.height : app.Drone.Height, remote ? t.speed : app.Drone.Speed, remote ? t.heading : app.Drone.transform.eulerAngles.y,
                 remote ? (app.Link.CommandPending ? "指令傳送中…" : "Wi-Fi 遙控") : (app.Drone.positionHold ? "定位模式" : "姿態練習 • 風漂移") + "  /  " + app.Course.Elapsed.ToString("F0") + " 秒");

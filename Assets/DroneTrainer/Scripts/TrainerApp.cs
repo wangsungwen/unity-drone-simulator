@@ -71,12 +71,15 @@ namespace DroneTrainer
         {
             if (Link.Role == RunRole.Remote) { Link.Request(command); return; }
             if (Paused && command != "reset") return;
-            if (command == "takeoff") Drone.Takeoff();
+            if (command == "confirm") { Course.ConfirmProcedure(); return; }
+            if (command == "takeoff" && !Course.IsProcedure) Drone.Takeoff();
             else if (command == "land") Drone.Land();
             else if (command == "reset") { SetPaused(false); Drone.ResetFlight(); Course.Configure(Course.Kind); Hud.ClearSticks(); }
         }
         public void SelectPractice(PracticeKind kind)
-        { SetPaused(false); Drone.ResetFlight(); Course.Configure(kind); Hud.ClearSticks(); }
+        { SetPaused(false); Drone.ResetFlight(); if (kind == PracticeKind.Circuit || kind == PracticeKind.Emergency) Drone.windHeading = 90; Course.Configure(kind); CameraRig.OperatorZ = Course.Profile == ExamProfile.Under2kg ? -2.25f : -7 * Course.Scale; Hud.ClearSticks(); }
+        public void SelectProfile(ExamProfile profile)
+        { Course.SetProfile(profile); SelectPractice(PracticeKind.Free); }
         public void SetPaused(bool pause)
         {
             Paused = pause; Drone.Body.isKinematic = false; Drone.Neutralize(); Hud?.ClearSticks();

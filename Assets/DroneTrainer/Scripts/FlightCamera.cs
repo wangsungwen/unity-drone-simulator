@@ -5,6 +5,7 @@ namespace DroneTrainer
     public sealed class FlightCamera : MonoBehaviour
     {
         public Transform target;
+        public float OperatorZ = -2.25f;
         public int Mode { get; private set; }
         public string ModeName { get { return Mode == 0 ? "追蹤" : Mode == 1 ? "地面操作員" : "機頭視角"; } }
         public void Cycle() { Mode = (Mode + 1) % 3; }
@@ -13,7 +14,7 @@ namespace DroneTrainer
             if (target == null) return;
             Vector3 position, look;
             if (Mode == 1)
-            { position = new Vector3(0, 2, -15); look = target.position; }
+            { position = new Vector3(0, 1.7f, OperatorZ); look = target.position; }
             else if (Mode == 2)
             { position = target.position + target.forward * .7f + Vector3.up * .1f; look = position + target.forward * 10; }
             else

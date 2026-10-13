@@ -13,3 +13,25 @@ PASS: lost heartbeat revokes control
 PASS: link loss neutralizes simulated vehicle
 PASS: automatic landing finishes
 PASS: reset restores home
+PASS: wrong heading cannot pass initial hover
+PASS: leaving hover resets continuous five second timer
+PASS: stable hover advances after five continuous seconds
+PASS: counterclockwise long turn cannot satisfy clockwise quarter turn
+PASS: four rotations still require final landing
+PASS: correct four-facing sequence and landing completes
+PASS: gear crossing H line fails despite center inside
+PASS: rectangle contains both directions and sampled travel segments
+PASS: five-leg course dimensions and reachable targets for BasicI
+PASS: sideways course built for BasicI
+PASS: five-leg course dimensions and reachable targets for BasicII
+PASS: sideways course built for BasicII
+PASS: five-leg course dimensions and reachable targets for BasicIII
+PASS: sideways course built for BasicIII
+PASS: emergency replaces circuit with stabilization approach and landing
+PASS: emergency selects nearer right inner circle
+PASS: emergency approach permits arbitrary heading without five second dwell
+PASS: emergency landing completes in correct inner circle
+PASS: figure eight uses ordered continuous two-circle samples
+PASS: procedure card prevents takeoff
+PASS: procedure acknowledgment finishes checklist
+PASS: flight behind operator stops exercise

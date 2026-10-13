@@ -52,6 +52,21 @@ public static class CoreTests
         Check(!hold.Step(true, .6f, 1) && hold.Step(true, .4f, 1), "continuous hold succeeds");
         hold.Reset(); Check(hold.Elapsed == 0, "explicit hold reset");
         Check(!hold.Step(true, -1, 1) && hold.Elapsed == 0, "negative time ignored");
+        Check(ExamRules.Stable(0, 1.5f, 0, 0), "exam centered hover accepts");
+        Check(!ExamRules.Stable(0, 3, 0, 0), "old 3m hover is rejected");
+        Check(!ExamRules.Stable(0, 1.5f, 0, 90), "wrong-facing hover rejected");
+        Check(!ExamRules.Stable(0, 1.5f, 1, 0), "moving hover rejected");
+        Check(!ExamRules.Stable(.6f, 1.5f, 0, 0), "outside hover target rejected");
+        Check(Near(ExamRules.AngleDelta(355, 5), 10), "clockwise wrap direction");
+        Check(Near(ExamRules.AngleDelta(5, 355), -10), "counterclockwise wrap direction");
+        Check(ExamRules.GearInside(0, 0, 45, 0, 0, 1), "rotated gear fits H circle");
+        Check(!ExamRules.GearInside(.7f, 0, 0, 0, 0, 1), "center inside is insufficient if gear crosses line");
+        Check(ExamRules.GearInside(-6, 6, 175, -6, 6, 4), "emergency inner circle accepts any heading");
+        Check(ExamRules.Scale(1) == 1 && ExamRules.Scale(2) == 1.5f && ExamRules.Scale(3) == 2, "CAA field grade scaling");
+        hold.Reset();
+        Check(!hold.Step(true, 4.9f, ExamRules.HoverSeconds), "five second dwell cannot finish early");
+        hold.Step(false, .1f, ExamRules.HoverSeconds);
+        Check(!hold.Step(true, .2f, ExamRules.HoverSeconds), "broken exam dwell restarts");
         return "PASS: " + count + " core assertions";
     }
 }

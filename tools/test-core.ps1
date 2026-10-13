@@ -1,6 +1,6 @@
 $ErrorActionPreference = 'Stop'
 $project = Split-Path -Parent $PSScriptRoot
-Add-Type -Path @((Join-Path $project 'Assets/DroneTrainer/Scripts/Core/ControlLogic.cs'), (Join-Path $project 'tests/CoreTests.cs'))
+Add-Type -Path @((Join-Path $project 'Assets/DroneTrainer/Scripts/Core/ControlLogic.cs'), (Join-Path $project 'Assets/DroneTrainer/Scripts/Core/ExamRules.cs'), (Join-Path $project 'tests/CoreTests.cs'))
 [CoreTests]::Run()
 # PowerShell 7 ships Roslyn. This checks C# syntax only, not Unity API binding.
 $syntaxFiles = Get-ChildItem -LiteralPath (Join-Path $project 'Assets') -Filter '*.cs' -Recurse

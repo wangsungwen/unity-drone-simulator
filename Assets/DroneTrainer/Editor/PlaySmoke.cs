@@ -60,8 +60,8 @@ namespace DroneTrainer.Editor
                 { Check(true, "UDP loopback pairs"); client.Request("takeoff"); Next(); }
                 else if (phase == 2 && elapsed > 4)
                 {
-                    Check(app.Drone.Flying && app.Drone.Height > 1.5f, "remote takeoff climbs");
-                    Check(client.Telemetry != null && client.Telemetry.height > 1.3f, "telemetry roundtrip");
+                    Check(app.Drone.Flying && app.Drone.Height > 1.2f, "remote takeoff climbs");
+                    Check(client.Telemetry != null && client.Telemetry.height > 1.1f, "telemetry roundtrip");
                     initial = app.Drone.transform.position;
                     client.OutgoingInput = new FlightInput { pitch = .6f }; Next();
                 }
@@ -107,6 +107,17 @@ namespace DroneTrainer.Editor
                 else if (phase == 10 && elapsed > .5)
                 {
                     Capture("TestResults/desktop-host.png");
+                    ExamCourseChecks.Run(app, Check);
+                    app.Hud.OpenPracticeMenu(); Next();
+                }
+                else if (phase == 11 && elapsed > .5)
+                {
+                    Capture("TestResults/exam-menu.png");
+                    app.SetRole(RunRole.Local); app.SelectProfile(ExamProfile.BasicI); app.SelectPractice(PracticeKind.FigureEight); Next();
+                }
+                else if (phase == 12 && elapsed > .5)
+                {
+                    Capture("TestResults/exam-eight.png");
                     Finish(true, null);
                 }
             }

@@ -45,7 +45,7 @@ namespace DroneTrainer
         {
             if (Crashed || Flying) return;
             Flying = true; takingOff = true; Landing = false;
-            holdPosition = Body.position + Vector3.up * 2;
+            holdPosition = Body.position + Vector3.up * 1.5f;
         }
         public void Land() { if (Flying) { takingOff = false; Landing = true; } }
         public void Neutralize()
@@ -86,7 +86,7 @@ namespace DroneTrainer
             Body.MoveRotation(Body.rotation * Quaternion.Euler(0, input.yaw * 85 * Time.fixedDeltaTime, 0));
             if (Height < .04f && (Landing || input.throttle < -.1f))
             { Flying = false; Landing = false; Body.velocity = Vector3.zero; }
-            if (Mathf.Abs(Body.position.x) > 48 || Mathf.Abs(Body.position.z) > 48 || Body.position.y < -.5f)
+            if (Mathf.Abs(Body.position.x) > 88 || Mathf.Abs(Body.position.z) > 88 || Body.position.y < -.5f)
             { Crashed = true; Flying = false; Body.velocity = Vector3.zero; }
         }
         void Update()

@@ -26,7 +26,9 @@ namespace DroneTrainer.Editor
         {
             PlayerSettings.companyName = "Independent Drone Lab";
             PlayerSettings.productName = "Drone Training Lab";
-            PlayerSettings.bundleVersion = "0.1.0";
+            PlayerSettings.bundleVersion = "0.2.0";
+            PlayerSettings.Android.bundleVersionCode = 2;
+            PlayerSettings.iOS.buildNumber = "2";
             PlayerSettings.SetApplicationIdentifier(BuildTargetGroup.Android, "tw.traininglab.dronesimulator");
             PlayerSettings.SetApplicationIdentifier(BuildTargetGroup.iOS, "tw.traininglab.dronesimulator");
             PlayerSettings.defaultInterfaceOrientation = UIOrientation.LandscapeLeft;
