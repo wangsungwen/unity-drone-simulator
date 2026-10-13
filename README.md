@@ -2,13 +2,23 @@
 
 Unity 3D 無人機模擬器，支援手機直接操作，以及手機透過同一個 Wi-Fi 當作電腦模擬器的雙搖桿遙控器。
 
+## 最新版下載
+
+請前往 [v0.2.2 發行頁](https://github.com/wangsungwen/unity-drone-simulator/releases/tag/v0.2.2) 下載：
+
+- `DroneTrainingLab-v0.2.2-Windows.zip`：解壓後執行 Windows/DroneTrainingLab.exe，保留 DLL 與 Data 資料夾。
+- `DroneTrainingLab-v0.2.2-Android.zip`：手機單機模擬器及電腦遙控器兩個 APK，支援 Android 5.1.1 以上（最低 API 22），含 ARMv7／ARM64。
+- `DroneTrainingLab-v0.2.2-iOS-Xcode.zip`：兩種 App 的完整 Xcode 匯出專案；須在 Mac 設定 Apple Team、編譯及簽署。此檔不是可直接安裝的 IPA。
+- `DroneLegacyRemote-v1.0.0-Android5.zip`：另附 Android 5.0 原生輕量遙控器。
+- `Source code (zip)`：GitHub 提供此次版本的原始碼，包含 Unity 專案、原生 Android 遙控器、建置工具及文件。
+
 ## 開發位置與 Android 相容性（v0.2.2）
 
 本機後續更新以 `D:\ResearchCodes\Mavic2Autonomy` 為主，Unity 專案位於其下 `unity-drone-simulator`；版本化舊資料夾保留作歷史備份。
 
 Android 兩種 App 的最低版本調整為 **Android 5.1 / API 22**，同時包含 **ARMv7（需 NEON）與 ARM64**，使用 OpenGL ES 3.0／2.0。Android 5.0 / API 21 不在 Unity 2022.3 的支援範圍；可使用另製的 [Android 5.0 原生輕量遙控器](AndroidLegacyRemote/README.md) 控制電腦畫面。最低安裝版本與 target SDK 不同，target SDK 保持 34。
 
-本次 Android 相容性更新可用 `python tools/package-platforms.py --platform Android` 單獨打包；既有 Windows 與 iOS v0.2.1 成品保留。舊手機的安裝、雙指操控、3D 效能及 Wi-Fi 配對仍需實機驗收。詳見 [Android 舊手機安裝說明](docs/Android舊手機相容性.md)。
+本次 Android 相容性更新可用 `python tools/package-platforms.py --platform Android` 單獨打包；Windows 與 iOS Xcode 匯出亦已更新至 v0.2.2。舊手機的安裝、雙指操控、3D 效能及 Wi-Fi 配對仍需實機驗收。詳見 [Android 舊手機安裝說明](docs/Android舊手機相容性.md)。
 
 ![術科練習選單](docs/screenshots/exam-menu.png)
 
@@ -44,7 +54,7 @@ iOS 對應匯出 `Builds/iOS` 與 `Builds/iOSRemote` 兩份 Xcode 專案，需�
 
 手機遙控電腦：電腦選「電腦接收手機」→「啟動接收」；手機選「手機遙控器」，輸入電腦 IPv4 與六位配對碼。兩端需在同一區域網路，電腦允許 UDP 47777。
 
-本儲存庫包含原始碼、Unity 資產、設定、文件及測試；`Builds`、`Library`、本機工具與快取不納入 Git。請自行建置 APK／Windows 執行檔；iOS 安裝需 Mac／Xcode 編譯及簽署。
+本儲存庫包含原始碼、Unity 資產、設定、文件及測試；`Builds`、`Library`、本機工具與快取不納入 Git。可從發行頁下載 APK／Windows 執行檔；iOS 安裝需 Mac／Xcode 編譯及簽署。
 
 ## 文件與驗證
 
