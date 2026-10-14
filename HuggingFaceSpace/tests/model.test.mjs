@@ -40,3 +40,21 @@ test('landing target requires touchdown inside landing area',()=>{
  f.x=0;for(let i=0;i<31;i++)p.step(1/60,f);assert.equal(p.finished,true);
 });
 test('angle wrap and empty free course',()=>{assert.equal(delta(350,10),20);assert.deepEqual(makeCourse('free'),[]);});
+
+test('body tilt follows all four commands and returns smoothly to level',()=>{
+ const f=new Flight();f.takeoff();run(f);
+ for(const [pitch,roll] of [[1,0],[-1,0],[0,1],[0,-1]]){
+  run(f,120,[0,0,pitch,roll]);
+  assert.ok(Math.abs(f.tiltPitch+pitch*16)<.01);
+  assert.ok(Math.abs(f.tiltRoll+roll*16)<.01);
+ }
+ const before=f.tiltRoll;f.step(1/60);assert.ok(Math.abs(f.tiltRoll)<Math.abs(before));assert.notEqual(f.tiltRoll,0);
+ run(f,120);assert.ok(Math.abs(f.tiltRoll)<.01);
+});
+test('tilt stays body-relative at any yaw; paused, landing and reset states',()=>{
+ const f=new Flight();f.takeoff();run(f);f.yaw=90;run(f,120,[0,0,1,1]);
+ assert.ok(f.tiltPitch< -15.9 && f.tiltRoll< -15.9);
+ f.paused=true;const a=f.tiltPitch;run(f,120,[0,0,-1,-1]);assert.equal(f.tiltPitch,a);
+ f.paused=false;f.land();run(f,120,[0,0,1,1]);assert.ok(Math.abs(f.tiltPitch)<.01);
+ f.reset();assert.equal(f.tiltPitch,0);assert.equal(f.tiltRoll,0);
+});

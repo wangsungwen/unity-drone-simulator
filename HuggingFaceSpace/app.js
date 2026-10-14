@@ -1,12 +1,12 @@
 import * as THREE from './vendor/three.module.js';
-import {Flight,Practice,mapSticks,clamp} from './model.js';
+import {Flight,Practice,mapSticks,clamp} from './model.js?v=0.1.1';
 const $=id=>document.getElementById(id), flight=new Flight();
 let practice=new Practice(),cameraMode=0,route,marker,overviewSize=20,overviewZ=0,overviewHeight=0;
 const stickValues={left:[0,0],right:[0,0]},keys=new Set(),stickReset=[];
 function neutral(){keys.clear();for(const reset of stickReset)reset();}
 function pause(value=true){neutral();flight.paused=value;$('pause').textContent=value?'繼續':'暫停';}
 function reset(){neutral();flight.reset();practice=new Practice($('course').value,Number($('scale').value));$('pause').textContent='暫停';drawRoute();}
-let renderer,scene,camera,drone,propellers=[];
+let renderer,scene,camera,drone,body,propellers=[];
 try{
  renderer=new THREE.WebGLRenderer({antialias:true,alpha:false});renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
  renderer.setClearColor(0x91b3c4);$('scene').append(renderer.domElement);renderer.domElement.setAttribute('aria-label','即時 3D 飛行畫面');
@@ -21,12 +21,12 @@ try{
  const hcanvas=document.createElement('canvas');hcanvas.width=hcanvas.height=128;const ctx=hcanvas.getContext('2d');ctx.fillStyle='#96efe6';ctx.font='bold 90px sans-serif';ctx.textAlign='center';ctx.fillText('H',64,99);
  const h=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(hcanvas),transparent:true}));h.rotation.x=-Math.PI/2;h.position.y=.02;scene.add(h);
  const safety=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-100,.02,4),new THREE.Vector3(100,.02,4)]),new THREE.LineBasicMaterial({color:0xf0b765}));scene.add(safety);
- drone=new THREE.Group();scene.add(drone);
- function box(w,h,d,color,x=0,y=0,z=0){const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshLambertMaterial({color}));mesh.position.set(x,y,z);drone.add(mesh);return mesh;}
+ drone=new THREE.Group();scene.add(drone);body=new THREE.Group();drone.add(body);
+ function box(w,h,d,color,x=0,y=0,z=0){const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshLambertMaterial({color}));mesh.position.set(x,y,z);body.add(mesh);return mesh;}
  box(.65,.22,.9,0xd8e6eb);box(.45,.2,.2,0xffa63c,0,.02,-.5);
  for(const x of [-.65,.65])for(const z of [-.65,.65]){
   const arm=box(Math.hypot(x,z),.07,.09,0x182b38,x/2,0,z/2);arm.rotation.y=-Math.atan2(z,x);
-  const motor=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,.15,12),new THREE.MeshLambertMaterial({color:z<0?0xffa63c:0x26ddd1}));motor.position.set(x,.1,z);drone.add(motor);
+  const motor=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,.15,12),new THREE.MeshLambertMaterial({color:z<0?0xffa63c:0x26ddd1}));motor.position.set(x,.1,z);body.add(motor);
   const prop=box(.75,.02,.07,0x142735,x,.19,z);propellers.push(prop);box(.055,.28,.055,0xc9dce6,x*.5,-.17,z*.5);
  }
  const beacon=new THREE.Mesh(new THREE.RingGeometry(1,1.08,40),new THREE.MeshBasicMaterial({color:0xfbc467,side:THREE.DoubleSide,depthTest:false,transparent:true,opacity:.8}));beacon.rotation.x=-Math.PI/2;beacon.position.y=-.15;drone.add(beacon);
@@ -56,7 +56,11 @@ $('sensitivity').oninput=neutral;
 $('camera').onclick=()=>{cameraMode=(cameraMode+1)%3;$('camera').textContent='視角：'+['全景俯視','眼高操作員','跟隨'][cameraMode];};
 $('fullscreen').onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await $('app').requestFullscreen();}catch{$('status').textContent='瀏覽器未允許全螢幕；可繼續在目前畫面練習。';}};
 $('help').onclick=()=>{pause();$('guide').showModal();};$('close-help').onclick=()=>$('guide').close();
-window.addEventListener('blur',()=>pause());document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();});
+// Embedded Spaces can blur on touch/focus transfers without becoming hidden.
+// Clear held controls on blur; only an actual hidden page or page exit pauses.
+window.addEventListener('blur',neutral);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();});
+window.addEventListener('pagehide',()=>pause());
 window.addEventListener('keydown',e=>{
  if(e.target.closest('input,select,dialog')||$('guide').open)return;
  if(['KeyW','KeyS','KeyA','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space','KeyP','KeyR','KeyC'].includes(e.code))e.preventDefault();
@@ -72,6 +76,7 @@ function frame(now){
  const [lx,ly]=stickValues.left,[rx,ry]=stickValues.right;
  flight.step(dt,mapSticks(clamp(lx+k('KeyD')-k('KeyA'),-1,1),clamp(ly+k('KeyW')-k('KeyS'),-1,1),clamp(rx+k('ArrowRight')-k('ArrowLeft'),-1,1),clamp(ry+k('ArrowUp')-k('ArrowDown'),-1,1),$('mode').value,Number($('sensitivity').value)/100),Number($('wind').value));
  practice.step(dt,flight);drone.position.set(flight.x,flight.h+.35,-flight.z);drone.rotation.y=-flight.yaw*Math.PI/180;
+ body.rotation.set(flight.tiltPitch*Math.PI/180,0,flight.tiltRoll*Math.PI/180);
  for(const p of propellers)if(flight.flying&&!flight.paused)p.rotation.y+=dt*40;
  const t=practice.target;marker.visible=!!t;if(t)marker.position.set(t.x,t.h+.3,-t.z);
  if(cameraMode===0){const size=overviewSize/Math.min(1,camera.aspect/1.5);camera.position.set(size*.23,overviewHeight+size*.92,overviewZ+size*.8);camera.lookAt(0,overviewHeight,overviewZ);}

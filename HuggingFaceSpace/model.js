@@ -7,11 +7,17 @@ export function mapSticks(lx,ly,rx,ry,mode='2',s=.7){
 }
 export class Flight {
  constructor(){this.reset();}
- reset(){Object.assign(this,{x:0,z:0,h:0,yaw:0,vx:0,vz:0,vh:0,flying:false,auto:null,paused:false,time:0});}
+ reset(){Object.assign(this,{x:0,z:0,h:0,yaw:0,vx:0,vz:0,vh:0,flying:false,auto:null,paused:false,time:0,tiltPitch:0,tiltRoll:0});}
  takeoff(){if(!this.flying&&!this.paused){this.flying=true;this.auto='up';}}
  land(){if(this.flying&&!this.paused)this.auto='down';}
  step(dt,input=[0,0,0,0],wind=0){
-  dt=clamp(dt,0,.05); if(this.paused||!this.flying)return;
+  dt=clamp(dt,0,.05); if(this.paused)return;
+  const tiltGain=1-Math.exp(-5*dt);
+  const tilting=this.flying&&this.auto!=='down';
+  // Three.js nose points -Z; negative X pitches it down. Match Unity's 16 degree response.
+  this.tiltPitch+=((tilting?-clamp(input[2],-1,1)*16:0)-this.tiltPitch)*tiltGain;
+  this.tiltRoll+=((tilting?-clamp(input[3],-1,1)*16:0)-this.tiltRoll)*tiltGain;
+  if(!this.flying)return;
   this.time+=dt; const [throttle,yaw,pitch,roll]=input;
   this.yaw=(this.yaw+yaw*75*dt+360)%360; const r=this.yaw*Math.PI/180;
   const gain=1-Math.exp(-4*dt);
