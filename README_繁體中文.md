@@ -1,5 +1,13 @@
 > v0.2.1 更新：數據移至頂端、提示移至下緣；新增預設全景俯視與眼高操作員視角；手機提供獨立「飛行模擬器」及「電腦遙控器」App。兩個 App 可同時安裝，詳細對照見 [README](README.md)。
 
+## 網頁線上版（Web 0.1.0）
+
+- [直接開啟飛行畫面](https://wangsongwen-drone-training-lab.static.hf.space/index.html) · [Hugging Face Space](https://huggingface.co/spaces/wangsongwen/drone-training-lab)
+- 提供 3D 畫面與雙搖桿同頁、鍵盤控制、Mode 1／2／3、三種視角、七種練習及側風／靈敏度設定。
+- [功能清單與快速操作](README.md#hugging-face-線上網頁版) · [網頁原始碼及部署說明](HuggingFaceSpace/README.md) · [部署包下載](https://github.com/wangsungwen/unity-drone-simulator/releases/tag/web-v0.1.0)
+- 網頁版採獨立簡化模型，不包含跨裝置遙控或 Windows 畫面串流；完整術科功能請使用下方 Unity App。
+
+
 # 無人機飛行訓練 Unity 專案
 
 原創的 Unity 3D 無人機練習專案，支援 **手機直接玩** 與 **手機當 Wi-Fi 遙控器、電腦顯示模擬場景**。同一份 Unity 原始碼可建置 Windows、Android 與 iOS。專案獨立於母目錄的 DJI／Android 程式，沒有真機飛控介面。

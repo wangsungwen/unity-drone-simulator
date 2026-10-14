@@ -1,15 +1,41 @@
 # 無人機飛行訓練 / Unity Drone Simulator
 
-Unity 3D 無人機模擬器，支援手機直接操作，以及手機透過同一個 Wi-Fi 當作電腦模擬器的雙搖桿遙控器。
+無人機飛行訓練專案，提供 Windows／Android／iOS 的 Unity 模擬器，以及免安裝的網頁線上版本。支援手機直接操作；原生 App 亦可透過同一個 Wi-Fi 當作電腦模擬器的雙搖桿遙控器。
 
 ## Hugging Face 線上網頁版
 
 已部署：[開啟 Space](https://huggingface.co/spaces/wangsongwen/drone-training-lab) · [直接開啟飛行畫面](https://wangsongwen-drone-training-lab.static.hf.space/index.html)
 
 
-新增 [HuggingFaceSpace](HuggingFaceSpace/README.md)：雙搖桿與 3D 畫面同頁、七種練習選項、三種視角及鍵盤操控。將該資料夾內容放到 Hugging Face Static Space 根目錄即可部署，不需要 Unity 或 GPU。
+網頁原始碼位於 [HuggingFaceSpace](HuggingFaceSpace)，完整操作與部署文件見 [網頁版說明](HuggingFaceSpace/README.md)。不需安裝 App，開啟網址即可在同一頁觀看 3D 飛行畫面並操作雙搖桿。
 
-此為獨立 JavaScript 簡化訓練版本，沒有跨裝置遙控與 Windows 畫面串流，不等同 Unity 完整術科判定。部署包見 [Web 0.1.0 發行頁](https://github.com/wangsungwen/unity-drone-simulator/releases/tag/web-v0.1.0)。
+| 網頁功能 | 內容 |
+|---|---|
+| 飛行畫面 | 即時 3D 場景、橘色機頭方向標示、高度／速度／航向數據 |
+| 操控 | 手機雙指雙搖桿、電腦鍵盤、Mode 1／2／3、靈敏度調整 |
+| 飛行操作 | 自動起飛至約 1.5 m、降落、暫停／繼續、重置、側風設定 |
+| 視角 | 全景俯視、眼高操作員、跟隨；支援全螢幕 |
+| 七種練習 | 自由飛行、四面停懸、12 × 5 m 雙向矩形、8 字水平圓、側面前後飛行、20 m 五邊航線、定點降落 |
+| 路線回饋 | 顯示路線、目前目標、高度與航向提示、連續停懸計時及進度 |
+| 尺寸選擇 | 基本級 I／II／III 對應 1×／1.5×／2×；矩形固定 12 × 5 m |
+| 操作中斷 | 放開搖桿歸零；切換分頁或視窗失焦自動暫停，需手動繼續 |
+| 部署 | Hugging Face Static Space，附所有前端資產與 Three.js，不需 GPU 或後端 |
+
+### 網頁快速操作
+
+1. [直接開啟飛行畫面](https://wangsongwen-drone-training-lab.static.hf.space/index.html)，手機建議橫向使用。
+2. 選擇練習與尺寸，再按「起飛」。若顯示「已暫停」，先按「繼續」。
+3. 預設 Mode 2：左桿上下升降、左右轉向；右桿上下前後、左右側移。移動方向依機頭朝向決定。
+4. 鍵盤 W/S、A/D 控制左桿，方向鍵控制右桿；Space 起飛／降落、P 暫停、C 切換視角、R 重置。
+5. 依底部目標提示練習，結束後按「降落」。變更練習或尺寸會重置飛機。
+
+### 下載與自行部署
+
+[下載網頁部署 ZIP](https://github.com/wangsungwen/unity-drone-simulator/releases/download/web-v0.1.0/DroneTrainingLab-Web-v0.1.0-HuggingFace.zip) · [Web 0.1.0 發行頁](https://github.com/wangsungwen/unity-drone-simulator/releases/tag/web-v0.1.0)
+
+在 Hugging Face 建立 **Static** Space，將部署 ZIP 解壓後的內容直接放在 Space 根目錄，保留 README 的 YAML 設定，入口為 `index.html`。詳細步驟見 [部署文件](HuggingFaceSpace/README.md#部署)。
+
+此網頁版為獨立 JavaScript 簡化訓練模型，沒有跨裝置遙控、UDP 配對、Windows 畫面串流或真機飛控，不等同 Unity 完整術科判定。需要支援 WebGL 與 JavaScript modules 的現代瀏覽器；Android 5 舊手機請使用原生 APK。已通過模型及 Chrome 瀏覽器測試，並驗證線上畫面載入與起飛；實體手機與 Safari 尚待驗收。
 
 ![網頁線上飛行畫面](docs/screenshots/web-online.png)
 
@@ -33,7 +59,7 @@ Android 兩種 App 的最低版本調整為 **Android 5.1 / API 22**，同時包
 
 ![術科練習選單](docs/screenshots/exam-menu.png)
 
-## 功能
+## Unity App 功能
 
 - 手機雙指雙搖桿，支援 Mode 1／2／3、靈敏度調整。
 - 起飛、降落、重置、定位／姿態練習及風速設定。
