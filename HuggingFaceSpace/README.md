@@ -19,7 +19,7 @@ pinned: false
 3. 保留 README 最上方的 YAML 設定；入口是 `index.html`。提交後等 Space 更新，再開啟 App。
 4. 使用手機時橫向操作；也可透過 Space 的直接 App 網址開啟，減少嵌入頁的可用高度限制。
 
-亦可把整個本資料夾作為獨立 Git 儲存庫推送到自己的 Space。此交付是部署包，尚未代為建立或發佈到使用者的 Hugging Face 帳號。
+亦可把整個本資料夾作為獨立 Git 儲存庫推送到自己的 Space。已部署至 https://huggingface.co/spaces/wangsongwen/drone-training-lab ，直接 App 網址為 https://wangsongwen-drone-training-lab.static.hf.space/index.html 。
 
 官方 Static Spaces 說明：https://huggingface.co/docs/hub/en/spaces-sdks-static
 
