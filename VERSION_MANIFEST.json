@@ -1,0 +1,8 @@
+{
+  "snapshot": "2026-10-19",
+  "tag": "baseline-2026-10-19",
+  "components": {
+    "native": "0.2.2",
+    "web": "0.1.1"
+  }
+}

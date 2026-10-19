@@ -104,3 +104,8 @@ iOS 對應匯出 `Builds/iOS` 與 `Builds/iOSRemote` 兩份 Xcode 專案，需�
 v0.2.1 的測試與建置狀態見驗證紀錄。手機實機與跨裝置 Wi-Fi 尚待驗收。測驗項目參照官方規範，數值容差為訓練設定；本程式控制虛擬飛機，不包含真機飛控。
 
 中文字型使用 Noto Sans CJK TC，授權見 [SIL OFL 1.1](Assets/DroneTrainer/Resources/FONT-LICENSE.txt)。
+
+
+## 分項版本管理
+
+[四專案對照與依賴](docs/PROJECTS.md) · [元件版本清單](VERSION_MANIFEST.json)。2026-10-19 分項基準使用 `baseline-2026-10-19` 標籤，保留本儲存庫既有提交與發行歷史。
